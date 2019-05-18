@@ -14,3 +14,18 @@ AS
 			ROLLBACK
 		END
 GO
+
+-- Create a trigger when price of pc is changed
+-- that this price will not be lower than any pc
+-- with the same processor speed
+USE pc
+GO
+CREATE TRIGGER EnforcePrice ON pc AFTER INSERT, UPDATE
+AS
+	IF NOT EXISTS(SELECT * FROM pc p
+		    	  JOIN inserted i ON p.price < i.price AND p.speed = i.speed)
+        BEGIN
+            RAISERROR('There shouldnt be price lower for this processor speed', 11, 1)
+            ROLLBACK
+        END
+GO
