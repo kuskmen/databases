@@ -29,3 +29,21 @@ AS
             ROLLBACK
         END
 GO
+
+-- Create a trigger that does not allow
+-- to have manufacturer that produces both
+-- printers and laptops
+USE pc
+GO
+CREATE TRIGGER EnforceManufacturer ON product AFTER INSERT, UPDATE, DELETE
+AS
+    IF EXISTS(SELECT * FROM product p1
+             JOIN product p2 ON p1.maker = p2.maker
+             JOIN inserted i ON i.maker = p1.maker
+             JOIN deleted d ON d.maker = p1.maker
+             WHERE p1.type = 'PC' and p2.type = 'Printer')
+        BEGIN
+            RAISERROR('One manufacturer can only manufacture PC or Printers not both.', 11, 1)
+            ROLLBACK
+        END
+GO
